@@ -1,0 +1,63 @@
+stages:
+  - install
+  - test
+
+variables:
+  STUDENT_NAME: "Artem"
+  TEST_SET: "Set_3_Structure"
+
+default:
+  image: node:latest
+
+install_job:
+  stage: install
+  script:
+    - echo "Студент $STUDENT_NAME розпочинає підготовку..."
+    - npm install
+
+test_job:
+  stage: test
+  script:
+    - |
+      echo "Обраний набір тестів: $TEST_SET"
+
+      case "$TEST_SET" in
+        "Set_1_Quality")
+          echo "Тести: Якість коду"
+          npm run lint
+          npx tsc --noEmit
+          npm run build
+          ;;
+
+        "Set_2_Security")
+          echo "Тести: Безпека"
+          npm audit --audit-level=critical
+          [ -f package-lock.json ] && echo "Lock_File_Present"
+          npm outdated || true
+          ;;
+
+        "Set_3_Structure")
+          echo "Тести: Структура проекту"
+          [ -f next.config.ts ] && echo "NextConfig_OK"
+          [ -f .gitignore ] && echo "Git_Rules_Present"
+          [ -f app/page.tsx ] && echo "Main_Page_Exists"
+          ;;
+
+        "Set_4_Performance")
+          echo "Тести: Продуктивність"
+          npm run build
+          echo "Перевірка розміру папки .next"
+          du -sh .next || true
+          echo "Аналіз завершено"
+          ;;
+
+        "Set_5_Deps")
+          echo "Тести: Залежності"
+          npm list --depth=0
+          npm audit --audit-level=high
+          echo "Перевірка конфігурації Node"
+          node -v
+          ;;
+      esac
+
+      echo "Звіт сформовано для: $STUDENT_NAME"
